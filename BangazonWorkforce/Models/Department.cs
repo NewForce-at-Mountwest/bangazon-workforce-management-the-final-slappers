@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BangazonAPI.Models
+namespace BangazonWorkforce.Models
 {
     public class Department
     {
@@ -13,6 +13,6 @@ namespace BangazonAPI.Models
 
         public int Budget { get; set; }
 
-
+        public List<Employee> listOfEmployees { get; set; } = new List<Employee>();
     }
 }
