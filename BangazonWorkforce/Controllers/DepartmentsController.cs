@@ -38,10 +38,10 @@ namespace BangazonWorkforce.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                                        SELECT Department.Id,
+                                        SELECT Department.Id AS DepartmentID,
                                             Department.Name,
-                                            Department.Budget
-                                        FROM Department";
+                                            Department.Budget, Employee.Id AS EmployeeID
+                                        FROM Department LEFT JOIN Employee ON Employee.DepartmentId = Department.Id";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Department> departments = new List<Department>();
@@ -50,12 +50,38 @@ namespace BangazonWorkforce.Controllers
                     {
                         Department department = new Department
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Id = reader.GetInt32(reader.GetOrdinal("DepartmentID")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
                         };
 
-                        departments.Add(department);
+                        if (departments.Any(dept => dept.Id == department.Id) == false)
+                        {
+                            if (!reader.IsDBNull(reader.GetOrdinal("EmployeeID")))
+                            {
+                                Employee employee = new Employee
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("EmployeeID"))
+                                };
+
+                                department.listOfEmployees.Add(employee);
+                            }
+
+                            departments.Add(department);
+                        }
+
+                        else
+                        {
+                            if (!reader.IsDBNull(reader.GetOrdinal("EmployeeID")))
+                            {
+                                Employee employee = new Employee
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("EmployeeID"))
+                                };
+
+                                departments.FirstOrDefault(d => d.Id == department.Id).listOfEmployees.Add(employee);
+                            }
+                        }
                     }
 
                     reader.Close();
