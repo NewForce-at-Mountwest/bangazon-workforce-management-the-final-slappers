@@ -179,3 +179,9 @@ INSERT INTO TrainingProgram (Name, StartDate, EndDate, MaxAttendees) VALUES ('Ta
 INSERT INTO EmployeeTraining (EmployeeId, TrainingProgramId) VALUES (1, 1)
 INSERT INTO EmployeeTraining (EmployeeId, TrainingProgramId) VALUES (2, 2)
 INSERT INTO EmployeeTraining (EmployeeId, TrainingProgramId) VALUES (3, 3)
+
+
+--Insert before testing TrainingProgram
+INSERT INTO TrainingProgram (Name, StartDate, EndDate, MaxAttendees) VALUES ('Target Training', '2020-10-10','2020-11-11',30)
+INSERT INTO EmployeeTraining (EmployeeId, TrainingProgramId) VALUES (3, 4)
+INSERT INTO EmployeeTraining (EmployeeId, TrainingProgramId) VALUES (2, 4)
