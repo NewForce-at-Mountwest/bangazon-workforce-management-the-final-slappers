@@ -21,11 +21,11 @@ namespace BangazonWorkforce.Controllers
         {
             get
             {
-                return new SqlConnection("Server=localhost\\SQLEXPRESS01;Database=BangazonWorkforce;Trusted_Connection=True;");
+                return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
             }
         }
 
-        // GET: StudentsController
+        // GET: EmployeesController
         public ActionResult Index()
         {
             using (SqlConnection conn = Connection)
@@ -99,7 +99,46 @@ namespace BangazonWorkforce.Controllers
         // GET: Employees/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                                         SELECT e.Id,
+                                            e.FirstName,
+                                            e.LastName,
+                                            e.DepartmentId
+                                        WHERE e.Id = @id
+                                    ";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    Employee employee = null;
+
+                    if (reader.Read())
+                    {
+                        employee = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            Language = reader.GetString(reader.GetOrdinal("Language"))
+                        };
+
+                    }
+
+                    reader.Close();
+
+                    if (exercise != null)
+                    {
+                        return View(exercise);
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(NotFound));
+                    }
+                }
+            }
         }
 
         // POST: Employees/Edit/5
