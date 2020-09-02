@@ -13,6 +13,6 @@ namespace BangazonWorkforce.Models
 
         public int Budget { get; set; }
 
-
+        public List<Employee> listOfEmployees { get; set; } = new List<Employee>();
     }
 }
