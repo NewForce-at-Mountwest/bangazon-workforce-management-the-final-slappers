@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BangazonAPI.Models
+namespace BangazonWorkforce.Models
 {
     public class Employee
     {
@@ -16,5 +16,7 @@ namespace BangazonAPI.Models
         public int DepartmentId { get; set; }
 
         public bool IsSupervisor { get; set; }
+
+        public  Department Department { get; set; }
     }
 }
