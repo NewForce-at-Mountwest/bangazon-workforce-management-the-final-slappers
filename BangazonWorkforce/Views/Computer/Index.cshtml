@@ -12,45 +12,45 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
+            @*<th>
                 @Html.DisplayNameFor(model => model.Id)
-            </th>
-            <th>
+            </th>*@
+            @*<th>
                 @Html.DisplayNameFor(model => model.PurchaseDate)
-            </th>
-            <th>
+            </th>*@
+            @*<th>
                 @Html.DisplayNameFor(model => model.DecommissionDate)
-            </th>
+            </th>*@
             <th>
                 @Html.DisplayNameFor(model => model.Make)
             </th>
-            <th>
+            @*<th>
                 @Html.DisplayNameFor(model => model.Manufacturer)
-            </th>
+            </th>*@
             <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>
+            @*<td>
                 @Html.DisplayFor(modelItem => item.Id)
-            </td>
-            <td>
+            </td>*@
+            @*<td>
                 @Html.DisplayFor(modelItem => item.PurchaseDate)
-            </td>
-            <td>
+            </td>*@
+            @*<td>
                 @Html.DisplayFor(modelItem => item.DecommissionDate)
-            </td>
+            </td>*@
             <td>
-                @Html.DisplayFor(modelItem => item.Make)
+                @*@Html.DisplayFor(modelItem => item.Make)*@
             </td>
-            <td>
+            @*<td>
                 @Html.DisplayFor(modelItem => item.Manufacturer)
-            </td>
+            </td>*@
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                @*@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |*@
+                @Html.ActionLink($"{item.Make}", "Details", new { /* id=item.PrimaryKey */ }) |
                 @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
             </td>
         </tr>
