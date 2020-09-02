@@ -38,7 +38,6 @@ namespace BangazonWorkforce.Controllers
                     SELECT
                         Id,
                         Make
-
                     FROM Computer
                                     ";
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -128,10 +127,25 @@ namespace BangazonWorkforce.Controllers
         // POST: ComputerController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Computer computerToAdd)
         {
             try
             {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO Computer (PurchaseDate, Make, Manufacturer)
+                                        OUTPUT INSERTED.Id
+                                        VALUES (@purchasedate, @make, @manufacturer)";
+                        cmd.Parameters.Add(new SqlParameter("@purchasedate", computerToAdd.PurchaseDate));
+                        cmd.Parameters.Add(new SqlParameter("@make", computerToAdd.Make));
+                        cmd.Parameters.Add(new SqlParameter("@manufacturer", computerToAdd.Manufacturer));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
