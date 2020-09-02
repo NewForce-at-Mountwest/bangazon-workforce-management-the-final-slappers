@@ -4,8 +4,11 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using BangazonWorkforce.Models;
+using BangazonWorkforce.Models.ViewModels;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforce.Controllers
@@ -99,6 +102,8 @@ namespace BangazonWorkforce.Controllers
         // GET: Employees/Edit/5
         public ActionResult Edit(int id)
         {
+            EmployeeEditViewModel viewModel = new EmployeeEditViewModel();
+
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
@@ -108,35 +113,92 @@ namespace BangazonWorkforce.Controllers
                                          SELECT e.Id,
                                             e.FirstName,
                                             e.LastName,
-                                            e.DepartmentId
+                                            e.DepartmentId,
+                                            e.isSuperVisor
+                                        FROM Employee e
                                         WHERE e.Id = @id
                                     ";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    Employee employee = null;
+                    viewModel.employee = null;
 
                     if (reader.Read())
                     {
-                        employee = new Employee
+                        viewModel.employee = new Employee
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Name = reader.GetString(reader.GetOrdinal("Name")),
-                            Language = reader.GetString(reader.GetOrdinal("Language"))
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                            IsSupervisor = reader.GetBoolean(reader.GetOrdinal("isSuperVisor"))
                         };
 
                     }
+                    reader.Close();
+                }
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Department.Id, Department.Name FROM Department";
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        Department department = new Department
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name"))
+                        };
+
+                        SelectListItem departmentOptionTag = new SelectListItem()
+                        {
+                            Text = department.Name,
+                            Value = department.Id.ToString()
+                        };
+
+                        viewModel.departments.Add(departmentOptionTag);
+                    }
 
                     reader.Close();
+                }
 
-                    if (exercise != null)
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Computer.Id, Computer.Make FROM Computer";
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
                     {
-                        return View(exercise);
+                        Computer computer = new Computer
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Make = reader.GetString(reader.GetOrdinal("Make"))
+                        };
+
+                        SelectListItem computerOptionTag = new SelectListItem()
+                        {
+                            Text = computer.Make,
+                            Value = computer.Id.ToString()
+                        };
+
+                        viewModel.computers.Add(computerOptionTag);
                     }
-                    else
-                    {
-                        return RedirectToAction(nameof(NotFound));
-                    }
+
+                    reader.Close();
+                }
+
+
+
+                if (viewModel.employee != null)
+                {
+                    return View(viewModel.employee);
+                }
+                else
+                {
+                    return RedirectToAction(nameof(NotFound));
                 }
             }
         }
@@ -144,15 +206,65 @@ namespace BangazonWorkforce.Controllers
         // POST: Employees/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, EmployeeEditViewModel viewModel)
         {
             try
             {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE Employee
+                                            SET FirstName=@firstName, 
+                                            LastName=@lastName, 
+                                            DepartmentId=@deptId, 
+                                            isSuperVisor=@isSupervisor
+                                            WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@firstName", viewModel.employee.FirstName));
+                        cmd.Parameters.Add(new SqlParameter("@lastName", viewModel.employee.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@deptId", viewModel.employee.DepartmentId));
+                        cmd.Parameters.Add(new SqlParameter("@isSupervisor", viewModel.employee.IsSupervisor));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                    }
+
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE ComputerEmployee
+                                            SET UnassignDate = @unassignDate
+                                            WHERE Id=@id";
+                        //cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                        cmd.Parameters.Add(new SqlParameter("@computerId", viewModel.currentComputerId));
+                        cmd.Parameters.Add(new SqlParameter("@unassignDate", DateTime.Now));
+                        cmd.Parameters.Add(new SqlParameter("@id", ));
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                    }
+
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO ComputerEmployee
+                                            ( EmployeeId, ComputerId, AssignDate )
+                                            VALUES
+                                            ( @employeeId, @computerId, @assigndate )";
+                        cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                        cmd.Parameters.Add(new SqlParameter("@computerId", viewModel.selectedComputerId));
+                        cmd.Parameters.Add(new SqlParameter("@assignDate", DateTime.Now));
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
-                return View();
+                return View(viewModel.employee);
             }
         }
 
