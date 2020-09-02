@@ -35,12 +35,12 @@ namespace BangazonWorkforce.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-            SELECT
+                    SELECT
+                        Id,
+                        Make
 
-                Make
-
-            FROM Computer
-        ";
+                    FROM Computer
+                                    ";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Computer> computers = new List<Computer>();
@@ -48,8 +48,9 @@ namespace BangazonWorkforce.Controllers
                     {
                         Computer computer = new Computer
                         {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             //Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
+                            Make = reader.GetString(reader.GetOrdinal("Make"))
                            //PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate"))
                         };
 
@@ -92,6 +93,7 @@ namespace BangazonWorkforce.Controllers
                     {
                         computer = new Computer
                         {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
                             Make = reader.GetString(reader.GetOrdinal("Make")),
                             PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
