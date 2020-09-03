@@ -80,7 +80,18 @@
         }
     }
 </div>
-<div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
-    <a asp-action="Index">Back to List</a>
-</div>
+@{
+    if (DateTime.Now < Model.StartDate)
+    {
+        <div>
+            @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+            <a asp-action="Index">Back to List</a>
+        </div>
+    }
+    else
+    {
+        <div>
+            <a asp-action="Index">Back to List</a>
+        </div>
+    }
+}

@@ -31,8 +31,9 @@ namespace BangazonWorkforce.Controllers
         }
 
         // GET: TrainingProgramsController
-        public ActionResult Index()
+        public ActionResult Index(string sortOrder)
         {
+            ViewData["PastSortParm"] = sortOrder;
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
@@ -46,8 +47,16 @@ namespace BangazonWorkforce.Controllers
                 tp.EndDate,
                 tp.MaxAttendees
             FROM TrainingProgram tp
-            WHERE EndDate > @today
         ";
+
+                    if (sortOrder == "past")
+                    {
+                        cmd.CommandText += "WHERE EndDate < @today";
+                    }
+                    else
+                    {
+                        cmd.CommandText += "WHERE EndDate > @today";
+                    }
                     cmd.Parameters.Add(new SqlParameter("@today", today));
                     SqlDataReader reader = cmd.ExecuteReader();
 
