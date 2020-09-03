@@ -171,8 +171,9 @@ namespace BangazonWorkforce.Controllers
                                             e.FirstName,
                                             e.LastName,
                                             e.DepartmentId,
-                                            e.isSuperVisor
-                                        FROM Employee e
+                                            e.isSuperVisor,
+                                            ce.ComputerId
+                                        FROM Employee e LEFT JOIN ComputerEmployee ce ON ce.EmployeeId = e.Id
                                         WHERE e.Id = @id
                                     ";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
@@ -190,6 +191,11 @@ namespace BangazonWorkforce.Controllers
                             DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
                             IsSupervisor = reader.GetBoolean(reader.GetOrdinal("isSuperVisor"))
                         };
+
+                        if(!reader.IsDBNull(reader.GetOrdinal("ComputerId")))
+                        {
+                            viewModel.ComputerId = reader.GetInt32(reader.GetOrdinal("ComputerId"));
+                        }
 
                     }
                     reader.Close();
@@ -230,7 +236,7 @@ namespace BangazonWorkforce.Controllers
                     SelectListItem nullOptionTag = new SelectListItem()
                     {
                         Text = "Please select a computer",
-                        // Value = null.ToString()
+                        Value = 0.ToString()
                     };
 
                     viewModel.computers.Add(nullOptionTag);
@@ -315,7 +321,7 @@ namespace BangazonWorkforce.Controllers
                                             VALUES
                                             ( @employeeId, @computerId, @assigndate )";
                         cmd.Parameters.Add(new SqlParameter("@employeeId", id));
-                        cmd.Parameters.Add(new SqlParameter("@computerId", viewModel.selectedComputerId));
+                        cmd.Parameters.Add(new SqlParameter("@computerId", viewModel.ComputerId));
                         cmd.Parameters.Add(new SqlParameter("@assignDate", DateTime.Now));
 
                         int rowsAffected = cmd.ExecuteNonQuery();
