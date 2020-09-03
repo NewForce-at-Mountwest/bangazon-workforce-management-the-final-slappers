@@ -4,8 +4,10 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using BangazonWorkforce.Models;
+using BangazonWorkforce.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforce.Controllers
@@ -21,7 +23,7 @@ namespace BangazonWorkforce.Controllers
         {
             get
             {
-                return new SqlConnection("Server=localhost\\SQLEXPRESS01;Database=BangazonWorkforce;Trusted_Connection=True;");
+                return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
             }
         }
 
@@ -77,18 +79,76 @@ namespace BangazonWorkforce.Controllers
 
         // GET: Employees/Create
         public ActionResult Create()
+  
         {
-            return View();
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+
+                    // Select all the cohorts
+                    cmd.CommandText = @"SELECT Department.Id, Department.Name FROM Department";
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    // Create a new instance of our view model
+                    EmployeeDepartmentViewModel viewModel = new EmployeeDepartmentViewModel();
+                    while (reader.Read())
+                    {
+                        // Map the raw data to our cohort model
+                        Department department = new Department
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name"))
+                        };
+
+                        // Use the info to build our SelectListItem
+                        SelectListItem departmentOptionTag = new SelectListItem()
+                        {
+                            Text = department.Name,
+                            Value = department.Id.ToString()
+                        };
+
+                        // Add the select list item to our list of dropdown options
+                        viewModel.departments.Add(departmentOptionTag);
+
+                    }
+
+                    reader.Close();
+
+
+                    // send it all to the view
+                    return View(viewModel);
+                }
+            }
         }
 
         // POST: Employees/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(EmployeeDepartmentViewModel viewModel)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO Employee
+                ( FirstName, LastName, DepartmentId )
+                VALUES
+                ( @firstName, @lastName, @departmentId )";
+                        cmd.Parameters.Add(new SqlParameter("@firstName", viewModel.employee.FirstName));
+                        cmd.Parameters.Add(new SqlParameter("@lastName", viewModel.employee.LastName));
+                        
+                        cmd.Parameters.Add(new SqlParameter("@departmentId", viewModel.employee.DepartmentId));
+                        cmd.ExecuteNonQuery();
+
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
             }
             catch
             {
