@@ -238,7 +238,7 @@ namespace BangazonWorkforce.Controllers
             }
             catch
             {
-                return View();
+                return View("DeleteError");
             }
         }
     }
