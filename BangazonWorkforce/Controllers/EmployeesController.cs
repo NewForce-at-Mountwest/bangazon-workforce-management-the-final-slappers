@@ -170,6 +170,8 @@ namespace BangazonWorkforce.Controllers
 
                     SqlDataReader reader = cmd.ExecuteReader();
 
+                    viewModel.
+
                     while (reader.Read())
                     {
                         Computer computer = new Computer
@@ -194,7 +196,7 @@ namespace BangazonWorkforce.Controllers
 
                 if (viewModel.employee != null)
                 {
-                    return View(viewModel.employee);
+                    return View(viewModel);
                 }
                 else
                 {
@@ -235,11 +237,9 @@ namespace BangazonWorkforce.Controllers
                     {
                         cmd.CommandText = @"UPDATE ComputerEmployee
                                             SET UnassignDate = @unassignDate
-                                            WHERE Id=@id";
-                        //cmd.Parameters.Add(new SqlParameter("@employeeId", id));
-                        cmd.Parameters.Add(new SqlParameter("@computerId", viewModel.currentComputerId));
+                                            WHERE EmployeeId=@employeeId AND UnassignDate IS NULL";
                         cmd.Parameters.Add(new SqlParameter("@unassignDate", DateTime.Now));
-                        cmd.Parameters.Add(new SqlParameter("@id", ));
+                        cmd.Parameters.Add(new SqlParameter("@employeeId", id));
 
                         int rowsAffected = cmd.ExecuteNonQuery();
 
@@ -264,7 +264,7 @@ namespace BangazonWorkforce.Controllers
             }
             catch
             {
-                return View(viewModel.employee);
+                return View(viewModel);
             }
         }
 
