@@ -174,7 +174,7 @@ namespace BangazonWorkforce.Controllers
                                             e.isSuperVisor,
                                             ce.ComputerId
                                         FROM Employee e LEFT JOIN ComputerEmployee ce ON ce.EmployeeId = e.Id
-                                        WHERE e.Id = @id
+                                        WHERE e.Id = @id AND ce.UnassignDate IS NULL
                                     ";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
