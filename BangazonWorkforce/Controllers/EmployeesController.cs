@@ -58,7 +58,7 @@ namespace BangazonWorkforce.Controllers
                             {
                                 Name = reader.GetString(reader.GetOrdinal("Name"))
                             }
-                            
+
                         };
 
                         employees.Add(employee);
@@ -79,7 +79,7 @@ namespace BangazonWorkforce.Controllers
 
         // GET: Employees/Create
         public ActionResult Create()
-  
+
         {
             using (SqlConnection conn = Connection)
             {
@@ -142,7 +142,7 @@ namespace BangazonWorkforce.Controllers
                 ( @firstName, @lastName, @departmentId )";
                         cmd.Parameters.Add(new SqlParameter("@firstName", viewModel.employee.FirstName));
                         cmd.Parameters.Add(new SqlParameter("@lastName", viewModel.employee.LastName));
-                        
+
                         cmd.Parameters.Add(new SqlParameter("@departmentId", viewModel.employee.DepartmentId));
                         cmd.ExecuteNonQuery();
 
@@ -156,8 +156,115 @@ namespace BangazonWorkforce.Controllers
             }
         }
 
-        // GET: Employees/Edit/5
-        public ActionResult Edit(int id)
+        public ActionResult CreateEmployeeTraining(int id)
+        {
+            EmployeeTrainingViewModel model = new EmployeeTrainingViewModel();
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+            SELECT e.Id,
+                e.FirstName,
+                e.LastName
+            FROM Employee e WHERE e.Id = @id
+        ";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        Employee employee = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName"))
+
+                        };
+
+                        model.employee = employee;
+                    }
+                    reader.Close();
+
+                    DateTime today = DateTime.Today;
+                    cmd.CommandText = @"
+            SELECT tp.Id,
+                tp.Name,
+                tp.StartDate,
+                tp.EndDate,
+                tp.MaxAttendees
+            FROM TrainingProgram tp
+            WHERE EndDate > @today
+        ";
+
+                    cmd.Parameters.Add(new SqlParameter("@today", today));
+
+                    SqlDataReader secondReader = cmd.ExecuteReader();
+
+                    while (secondReader.Read())
+                    {
+                        TrainingProgram program = new TrainingProgram
+                        {
+                            Id = secondReader.GetInt32(secondReader.GetOrdinal("Id")),
+                            Name = secondReader.GetString(secondReader.GetOrdinal("Name")),
+                            StartDate = secondReader.GetDateTime(secondReader.GetOrdinal("StartDate")),
+                            EndDate = secondReader.GetDateTime(secondReader.GetOrdinal("EndDate")),
+                            MaxAttendees = secondReader.GetInt32(secondReader.GetOrdinal("MaxAttendees"))
+                        };
+
+                        // Use the info to build our SelectListItem
+                        SelectListItem trainingProgramOptionTag = new SelectListItem()
+                        {
+                            Text = program.Name,
+                            Value = program.Id.ToString()
+                        };
+
+                        // Add the select list item to our list of dropdown options
+                        model.programs.Add(trainingProgramOptionTag);
+
+                    }
+                }
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreateEmployeeTraining(int id, EmployeeTrainingViewModel model)
+        {
+            try
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"DELETE FROM EmployeeTraining
+                        WHERE EmployeeId = @id
+                        ";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        model.selectedPrograms.ForEach(selectedProgram =>
+                        {
+                                cmd.CommandText += $"INSERT INTO EmployeeTraining (EmployeeId, TrainingProgramId) VALUES ({id}, {selectedProgram}) ";
+                        });
+
+                        cmd.ExecuteNonQuery();
+
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+            }
+            catch()
+            {
+                return View();
+            }
+            
+        }
+
+            // GET: Employees/Edit/5
+            public ActionResult Edit(int id)
         {
             return View();
         }
