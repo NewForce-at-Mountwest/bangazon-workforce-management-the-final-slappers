@@ -90,13 +90,14 @@ namespace BangazonWorkforce.Controllers
                     Computer computer = null;
                     if (reader.Read())
                     {
+                        DateTime? dateTime = null;
                         computer = new Computer
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
                             Make = reader.GetString(reader.GetOrdinal("Make")),
                             PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                            DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate"))
+                            DecomissionDate = reader.IsDBNull(reader.GetOrdinal("DecomissionDate")) ?  dateTime :  reader.GetDateTime(reader.GetOrdinal("DecomissionDate"))
                         };
 
                     }
@@ -178,7 +179,41 @@ namespace BangazonWorkforce.Controllers
         // GET: ComputerController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+            SELECT       Id,
+                         Manufacturer,
+                         Make,
+                         PurchaseDate,
+                         DecomissionDate
+            FROM Computer
+            WHERE Id = @id
+        ";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    Computer computer = null;
+                    DateTime? dateTime = null;
+                    while (reader.Read())
+                    {
+                        computer = new Computer
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                            Make = reader.GetString(reader.GetOrdinal("Make")),
+                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                            DecomissionDate = reader.IsDBNull(reader.GetOrdinal("DecomissionDate")) ? dateTime : reader.GetDateTime(reader.GetOrdinal("DecomissionDate"))
+                        };
+                    }
+
+                    reader.Close();
+
+                    return View(computer);
+                }
+            }
         }
 
         // POST: ComputerController/Delete/5
@@ -188,6 +223,17 @@ namespace BangazonWorkforce.Controllers
         {
             try
             {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"DELETE FROM Computer WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
