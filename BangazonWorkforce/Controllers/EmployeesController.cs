@@ -224,6 +224,25 @@ namespace BangazonWorkforce.Controllers
                         model.programs.Add(trainingProgramOptionTag);
 
                     }
+
+                    secondReader.Close();
+
+                    cmd.CommandText = @"
+                    SELECT
+                    et.TrainingProgramId
+                    FROM EmployeeTraining et
+                    WHERE et.EmployeeId = @id
+                    ";
+
+                    SqlDataReader thirdReader = cmd.ExecuteReader();
+
+                    while (thirdReader.Read())
+                    {
+                        int currentProgramId = thirdReader.GetInt32(thirdReader.GetOrdinal("TrainingProgramId"));
+                        model.selectedPrograms.Add(currentProgramId);
+                    }
+
+                    thirdReader.Close();
                 }
             }
             return View(model);
@@ -240,10 +259,16 @@ namespace BangazonWorkforce.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"DELETE FROM EmployeeTraining
-                        WHERE EmployeeId = @id
+                        DateTime today = DateTime.Today;
+
+                        cmd.CommandText = @"DELETE et FROM EmployeeTraining et
+                        JOIN TrainingProgram tp ON et.TrainingProgramId = tp.Id
+                        WHERE et.EmployeeId = @id
+                        AND tp.EndDate > @today
                         ";
+
                         cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.Parameters.Add(new SqlParameter("@today", today));
 
                         model.selectedPrograms.ForEach(selectedProgram =>
                         {
@@ -256,7 +281,7 @@ namespace BangazonWorkforce.Controllers
                     }
                 }
             }
-            catch()
+            catch (Exception e)
             {
                 return View();
             }
