@@ -7,9 +7,16 @@ a.navbar-brand {
   word-break: break-all;
 }
 
+.input#SearchInput.form-control {
+  flex: 0.35 0.5 auto;
+}
+
+.input-group > .custom-file, .input-group > .custom-select, .input-group > .form-control, .input-group > .form-control-plaintext {
+    flex: 0.35 0.5 auto;
+}
 /* Provide sufficient contrast against white background */
 a {
-  color: #0366d6;
+    color: #0366d6;
 }
 
 a.badgeClass{

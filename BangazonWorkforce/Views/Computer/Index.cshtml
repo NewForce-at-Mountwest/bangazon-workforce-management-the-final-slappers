@@ -6,6 +6,23 @@
 
 <h1>Index</h1>
 
+@using (Html.BeginForm())
+{
+<p class="input-group">
+    @Html.TextBox("SearchInput", null, new { @class = "form-control" })
+    <span class="input-group-btn">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    </span>
+</p>
+    <!--<p>
+        Search : @Html.TextBox("SearchInput")<br />
+        <input type="submit" value="Search" />-->
+    @*<input class="form-control" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>*@
+    
+    <!--</p>-->
+}
+
 <p>
     <a asp-action="Create">Create New</a>
 </p>
@@ -13,47 +30,48 @@
     <thead>
         <tr>
             @*<th>
-                @Html.DisplayNameFor(model => model.Id)
-            </th>*@
+                    @Html.DisplayNameFor(model => model.Id)
+                </th>*@
             @*<th>
-                @Html.DisplayNameFor(model => model.PurchaseDate)
-            </th>*@
+                    @Html.DisplayNameFor(model => model.PurchaseDate)
+                </th>*@
             @*<th>
-                @Html.DisplayNameFor(model => model.DecommissionDate)
-            </th>*@
+                    @Html.DisplayNameFor(model => model.DecommissionDate)
+                </th>*@
             <th>
                 @Html.DisplayNameFor(model => model.Make)
             </th>
-            @*<th>
+            <th>
                 @Html.DisplayNameFor(model => model.Manufacturer)
-            </th>*@
+            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            @*<td>
-                @Html.DisplayFor(modelItem => item.Id)
-            </td>*@
-            @*<td>
-                @Html.DisplayFor(modelItem => item.PurchaseDate)
-            </td>*@
-            @*<td>
-                @Html.DisplayFor(modelItem => item.DecommissionDate)
-            </td>*@
-            <td>
-                @*@Html.DisplayFor(modelItem => item.Make)*@
-            </td>
-            @*<td>
-                @Html.DisplayFor(modelItem => item.Manufacturer)
-            </td>*@
-            <td>
-                @*@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |*@
-                @Html.ActionLink($"{item.Make}", "Details", new {  id=item.Id  }) |
-                @Html.ActionLink("Delete", "Delete", new {  id=item.Id  })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                @*<td>
+                        @Html.DisplayFor(modelItem => item.Id)
+                    </td>*@
+                @*<td>
+                        @Html.DisplayFor(modelItem => item.PurchaseDate)
+                    </td>*@
+                @*<td>
+                        @Html.DisplayFor(modelItem => item.DecommissionDate)
+                    </td>*@
+                <td>
+                    @Html.DisplayFor(modelItem => item.Make)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Manufacturer)
+                </td>
+                <td>
+                    @*@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |*@
+                    @Html.ActionLink($"{item.Make}", "Details", new { id = item.Id }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
