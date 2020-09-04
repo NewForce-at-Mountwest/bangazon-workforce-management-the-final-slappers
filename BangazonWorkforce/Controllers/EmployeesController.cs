@@ -27,7 +27,7 @@ namespace BangazonWorkforce.Controllers
             }
         }
 
-        // GET: StudentsController
+        // GET: EmployeesController
         public ActionResult Index()
         {
             using (SqlConnection conn = Connection)
@@ -159,21 +159,181 @@ namespace BangazonWorkforce.Controllers
         // GET: Employees/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            EmployeeEditViewModel viewModel = new EmployeeEditViewModel();
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                                         SELECT e.Id,
+                                            e.FirstName,
+                                            e.LastName,
+                                            e.DepartmentId,
+                                            e.isSuperVisor,
+                                            ce.ComputerId
+                                        FROM Employee e LEFT JOIN ComputerEmployee ce ON ce.EmployeeId = e.Id
+                                        WHERE e.Id = @id AND ce.UnassignDate IS NULL
+                                    ";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    viewModel.employee = null;
+
+                    if (reader.Read())
+                    {
+                        viewModel.employee = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                            IsSupervisor = reader.GetBoolean(reader.GetOrdinal("isSuperVisor"))
+                        };
+
+                        if(!reader.IsDBNull(reader.GetOrdinal("ComputerId")))
+                        {
+                            viewModel.ComputerId = reader.GetInt32(reader.GetOrdinal("ComputerId"));
+                        }
+
+                    }
+                    reader.Close();
+                }
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Department.Id, Department.Name FROM Department";
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        Department department = new Department
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name"))
+                        };
+
+                        SelectListItem departmentOptionTag = new SelectListItem()
+                        {
+                            Text = department.Name,
+                            Value = department.Id.ToString()
+                        };
+
+                        viewModel.departments.Add(departmentOptionTag);
+                    }
+
+                    reader.Close();
+                }
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Computer.Id, Computer.Make FROM Computer";
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    SelectListItem nullOptionTag = new SelectListItem()
+                    {
+                        Text = "Please select a computer",
+                        Value = 0.ToString()
+                    };
+
+                    viewModel.computers.Add(nullOptionTag);
+
+                    while (reader.Read())
+                    {
+                        Computer computer = new Computer
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Make = reader.GetString(reader.GetOrdinal("Make"))
+                        };
+
+                        SelectListItem computerOptionTag = new SelectListItem()
+                        {
+                            Text = computer.Make,
+                            Value = computer.Id.ToString()
+                        };
+
+                        viewModel.computers.Add(computerOptionTag);
+                    }
+
+                    reader.Close();
+                }
+
+
+
+                if (viewModel.employee != null)
+                {
+                    return View(viewModel);
+                }
+                else
+                {
+                    return RedirectToAction(nameof(NotFound));
+                }
+            }
         }
 
         // POST: Employees/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, EmployeeEditViewModel viewModel)
         {
             try
             {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE Employee
+                                            SET FirstName=@firstName, 
+                                            LastName=@lastName, 
+                                            DepartmentId=@deptId, 
+                                            isSuperVisor=@isSupervisor
+                                            WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@firstName", viewModel.employee.FirstName));
+                        cmd.Parameters.Add(new SqlParameter("@lastName", viewModel.employee.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@deptId", viewModel.employee.DepartmentId));
+                        cmd.Parameters.Add(new SqlParameter("@isSupervisor", viewModel.employee.IsSupervisor));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                    }
+
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE ComputerEmployee
+                                            SET UnassignDate = @unassignDate
+                                            WHERE EmployeeId=@employeeId AND UnassignDate IS NULL";
+                        cmd.Parameters.Add(new SqlParameter("@unassignDate", DateTime.Now));
+                        cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                    }
+
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO ComputerEmployee
+                                            ( EmployeeId, ComputerId, AssignDate )
+                                            VALUES
+                                            ( @employeeId, @computerId, @assigndate )";
+                        cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                        cmd.Parameters.Add(new SqlParameter("@computerId", viewModel.ComputerId));
+                        cmd.Parameters.Add(new SqlParameter("@assignDate", DateTime.Now));
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
-                return View();
+                return View(viewModel);
             }
         }
 
