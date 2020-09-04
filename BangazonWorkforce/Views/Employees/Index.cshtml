@@ -29,7 +29,6 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
-
             <td>
                 @Html.DisplayFor(modelItem => item.FirstName)
             </td>
@@ -41,10 +40,11 @@
             </td>
 
             <td>
+                @Html.ActionLink("Enroll in a training program", "CreateEmployeeTraining", new { id = item.Id }) |
                 @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id })
             </td>
         </tr>
-}
+        }
     </tbody>
 </table>
