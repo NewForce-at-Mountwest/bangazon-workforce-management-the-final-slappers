@@ -4,56 +4,96 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+@{
+    string sortOrder = $"{ViewData["PastSortParm"]}";
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Program Id
-            </th>
-            <th>
-                Program Name
-            </th>
-            <th>
-                Start Date
-            </th>
-            <th>
-                End Date
-            </th>
-            <th>
-                Max Attendees
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaxAttendees)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
-                @Html.ActionLink("Details", "Details", new { id=item.Id }) |
-                @Html.ActionLink("Delete", "Delete", new { id=item.Id })
-            </td>
-        </tr>
+    <h1>Index</h1>
+    if (sortOrder == "past")
+    { 
+        <h2>Past Programs</h2>
+    }
+    else
+    {
+
+        <h2>Current and Future Programs</h2>
+    }
+
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Program Id
+                </th>
+                <th>
+                    Program Name
+                </th>
+                <th>
+                    Start Date
+                </th>
+                <th>
+                    End Date
+                </th>
+                <th>
+                    Max Attendees
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Id)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MaxAttendees)
+                    </td>
+                    @{ if (sortOrder == "past")
+                        {
+                            <td>
+                                @Html.ActionLink("Details", "Details", new { id = item.Id })
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                            </td>
+                        }
+                    }
+
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    if (sortOrder == "past")
+    {
+        <p>
+            <a asp-action="Index" asp-route-sortOrder="">View currently open training programs</a>
+        </p>
+    }
+    else
+    {
+        <p>
+            <a asp-action="Index" asp-route-sortOrder="past">View past training programs</a>
+        </p>
+    }
 }
-    </tbody>
-</table>
+
